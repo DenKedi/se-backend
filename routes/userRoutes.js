@@ -1,9 +1,3 @@
-/**
- * @fileoverview This file contains the routes for user-related operations, including user registration, 
- * fetching user details, and email confirmation. It uses Express.js for routing and various middleware 
- * for authentication and validation.
- */
-
 require("dotenv").config(); // Load environment variables from .env
 
 const express = require("express");
@@ -14,21 +8,24 @@ const bcrypt = require("bcryptjs");
 const { sendMail } = require("../utils/email");
 const jwt = require("jsonwebtoken");
 
-/**
- * @typedef {Object} User
- * @property {number} index - The unique index of the user.
- * @property {string} username - The unique username of the user.
- * @property {string} email - The unique email of the user.
- * @property {string} password - The hashed password of the user.
- * @property {string} [bio] - The bio of the user.
- * @property {string} [status="online"] - The status of the user.
- * @property {string} [profilePicture] - The profile picture URL of the user.
- * @property {Array<ObjectId>} friendList - The list of friends of the user.
- * @property {Date} createdAt - The date when the user was created.
- * @property {Date} updatedAt - The date when the user was last updated.
- */
 
-//GET /api/users/me
+function getLatestUserID() {
+
+}
+
+//GET /api/user
+router.get("/", async (req, res) => {
+    try {
+      const users = await User.find();
+      res.json(users);
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send("Server error");
+    }
+  });
+
+
+//GET /api/user/me
 router.get("/me", auth, async (req, res) => {
     try {
       // Find the user by ID
@@ -41,7 +38,7 @@ router.get("/me", auth, async (req, res) => {
     }
   });
 
-// GET /api/users/:id
+// GET /api/user/:id
 router.get("/:id", async (req, res) => {
     try {
       const user = await User.findById(req.params.id);
@@ -54,73 +51,67 @@ router.get("/:id", async (req, res) => {
   });
   
 
-//POST /api/users/register
-    // POST /api/users/register
+// POST /api/user/register
 router.post("/register", async (req, res) => {
-    const { name, email, password, location } = req.body;
-  
-    try {
-        // Check if the user already exists
-        let user = await User.findOne({ email });
-        if (user) {
-            return res.status(400).json({ msg: "Benutzer mit dieser E-mail existiert bereits" });
-        }
-  
-        // Check if company email @straightforward.email
-        if (!email.includes("@straightforward.email")) {
-            return res.status(401).json({ msg: "Bitte benutze eine E-mail der Firma Straightforward" });
-        }
-  
-        // Create a new user instance
-        user = new User({
-            name,
-            email,
-            password,
-            location,
-            isConfirmed: false // Set isActive to false until email confirmation
-        });
-  
-        // Save the new user
-        await user.save();
-  
-        // Generate a confirmation token with a short expiration time (e.g., 1 hour)
-        const confirmationToken = jwt.sign(
-            { userId: user.id },
-            process.env.JWT_SECRET,
-            { expiresIn: "1h" }
-        );
-  
-        await user.save();
-  
-        // Send the confirmation email
-        const confirmUrl = `https://straightmonitor.com/confirm-email?token=${confirmationToken}`;
-        const emailSubject = "Bestätige deine E-Mail Adresse für den Straightforward Monitor";
-        const emailContent = `
-    <div style="font-family: Arial, sans-serif; color: #333;">
-      <h2 style="font-weight: bold; color: #000;">Willkommen beim Straightforward Monitor!</h2>
-      <p>Diese E-Mail dient zur Bestätigung deiner Registrierung. Bitte bestätige deine E-Mail Adresse, um dein Profil zu aktivieren.</p>
-      <p>
-        <a href="${confirmUrl}" style="color: #000; text-decoration: none; font-weight: bold;">
-          <strong>Hier klicken, um die E-Mail Adresse zu bestätigen</strong>
-        </a>
-      </p>
-      <hr />
-      <p style="font-size: 12px; color: #666;">
-        Falls du nicht versuchst, dich zu registrieren, ignoriere diese Nachricht.
-      </p>
-    </div>
-  `;
-  
-        await sendMail(user.email, emailSubject, emailContent);
-  
-        res.status(200).json({ msg: "Registration successful. Please check your email to confirm your account." });
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send("Server error");
+  const { displayed_name, email, password } = req.body;
+
+  try {
+    // Prüfen, ob die E-Mail bereits registriert ist
+    let existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ msg: "Benutzer mit dieser E-Mail existiert bereits" });
     }
-  });
-  
-  //POST /api/users/resend-confirmation
+
+    // Höchste user_id ermitteln
+    const lastUser = await User.findOne().sort({ user_id: -1 });
+    const nextUserId = lastUser ? Math.ceil(lastUser.user_id / 10) * 10 + 1 : 1;
+
+    // Neuen Benutzer erstellen
+    const newUser = new User({
+      user_id: nextUserId,
+      displayed_name,
+      email,
+      password: password,
+    });
+
+    // Benutzer speichern
+    await newUser.save();
+
+    // Bestätigungs-E-Mail erstellen
+    const confirmationToken = jwt.sign(
+      { userId: newUser.id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    const confirmUrl = `https://straightmonitor.com/confirm-email?token=${confirmationToken}`;
+    const emailSubject = "Bestätige deine E-Mail Adresse für den Straightforward Monitor";
+    const emailContent = `
+      <div style="font-family: Arial, sans-serif; color: #333;">
+        <h2 style="font-weight: bold; color: #000;">Willkommen beim Straightforward Monitor!</h2>
+        <p>Diese E-Mail dient zur Bestätigung deiner Registrierung. Bitte bestätige deine E-Mail Adresse, um dein Profil zu aktivieren.</p>
+        <p>
+          <a href="${confirmUrl}" style="color: #000; text-decoration: none; font-weight: bold;">
+            <strong>Hier klicken, um die E-Mail Adresse zu bestätigen</strong>
+          </a>
+        </p>
+        <hr />
+        <p style="font-size: 12px; color: #666;">
+          Falls du nicht versuchst, dich zu registrieren, ignoriere diese Nachricht.
+        </p>
+      </div>
+    `;
+
+    //await sendMail(newUser.email, emailSubject, emailContent);
+
+    res.status(200).json({ msg: "Registrierung erfolgreich. Bitte überprüfe deine E-Mails." });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server-Fehler");
+  }
+});
+
+  //POST /api/user/resend-confirmation
 router.post("/resend-confirmation", async (req, res) => {
     const { email } = req.body;
   
@@ -166,8 +157,8 @@ router.post("/resend-confirmation", async (req, res) => {
     }
   });
   
-  // POST /api/users/confirm-email
-router.post("/confirm-email", async (req, res) => {
+  // POST /api/user/confirm-email
+router.put("/confirm-email", async (req, res) => {
     const { token } = req.body;
   
     try {
@@ -197,7 +188,7 @@ router.post("/confirm-email", async (req, res) => {
     }
   });
   
-  // POST /api/users/login
+  // POST /api/user/login
 router.post("/login", async (req, res) => {
     const { email, password } = req.body;
   

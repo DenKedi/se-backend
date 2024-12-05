@@ -2,14 +2,15 @@ const mongoose = require("mongoose");
 
 const ChatSchema = new mongoose.Schema(
   {
-    participants: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    ],
-    lastMessage: { type: String, default: "" },
-    lastMessageAt: { type: Date, default: null },
-    createdAt: { type: Date, default: Date.now },
+  members: [{ type: Number, ref: "User" }],
+  messages: [{
+    from: { type: Number, ref: "User" },
+    to: { type: Number, ref: "User" },
+    text: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now },
+    isDeleted: { type: Boolean, default: false },
+  }]
   },
-  { timestamps: true }
 );
 
 module.exports = mongoose.model("Chat", ChatSchema);
