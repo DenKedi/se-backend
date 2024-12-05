@@ -9,10 +9,6 @@ const { sendMail } = require("../utils/email");
 const jwt = require("jsonwebtoken");
 
 
-function getLatestUserID() {
-
-}
-
 //GET /api/user
 router.get("/", async (req, res) => {
     try {
@@ -64,7 +60,8 @@ router.post("/register", async (req, res) => {
 
     // Höchste user_id ermitteln
     const lastUser = await User.findOne().sort({ user_id: -1 });
-    const nextUserId = lastUser ? Math.ceil(lastUser.user_id / 10) * 10 + 1 : 1;
+    const nextUserId = lastUser ? lastUser.user_id+1 : 1;
+
 
     // Neuen Benutzer erstellen
     const newUser = new User({
@@ -84,23 +81,9 @@ router.post("/register", async (req, res) => {
       { expiresIn: "1h" }
     );
 
-    const confirmUrl = `https://straightmonitor.com/confirm-email?token=${confirmationToken}`;
-    const emailSubject = "Bestätige deine E-Mail Adresse für den Straightforward Monitor";
-    const emailContent = `
-      <div style="font-family: Arial, sans-serif; color: #333;">
-        <h2 style="font-weight: bold; color: #000;">Willkommen beim Straightforward Monitor!</h2>
-        <p>Diese E-Mail dient zur Bestätigung deiner Registrierung. Bitte bestätige deine E-Mail Adresse, um dein Profil zu aktivieren.</p>
-        <p>
-          <a href="${confirmUrl}" style="color: #000; text-decoration: none; font-weight: bold;">
-            <strong>Hier klicken, um die E-Mail Adresse zu bestätigen</strong>
-          </a>
-        </p>
-        <hr />
-        <p style="font-size: 12px; color: #666;">
-          Falls du nicht versuchst, dich zu registrieren, ignoriere diese Nachricht.
-        </p>
-      </div>
-    `;
+    const confirmUrl = `http://localhost:4200/confirm-email?token=${confirmationToken}`;
+    const emailSubject = "Bestätige deine E-Mail Adresse für Plausch";
+    const emailContent = ``;
 
     //await sendMail(newUser.email, emailSubject, emailContent);
 
@@ -174,7 +157,7 @@ router.put("/confirm-email", async (req, res) => {
   
       // Check if the user is already confirmed
       if (user.isConfirmed) {
-        return res.status(400).json({ msg: "E-Mail bereits bestätigt" });
+        return res.status(400).json({ msg: "-Mail bereitEs bestätigt" });
       }
   
       // Update the user's confirmation status

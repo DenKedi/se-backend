@@ -32,6 +32,8 @@ app.get("/", (req, res) => {
   res.send("Node.js backend is running!");
 });
 app.use("/api/user", userRoutes);
+app.use("/api/chat", chatRoutes);
+
 // Example API route
 app.post("/api/data", (req, res) => {
   const data = req.body;
