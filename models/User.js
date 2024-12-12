@@ -15,8 +15,6 @@ const UserSchema = new mongoose.Schema(
     pendingRequests: [
       {
         from: { type: Number, ref: 'User', required: true },
-        to: { type: Number, ref: 'User', required: true },
-        timestamp: { type: Date, default: Date.now },
         status: {
           type: String,
           enum: ['pending', 'accepted', 'denied'],
