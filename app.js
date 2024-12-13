@@ -7,6 +7,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 
 const mongoose = require("mongoose");
+const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
@@ -26,6 +27,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(errorHandler);
 
 // Routes
 app.get("/", (req, res) => {
