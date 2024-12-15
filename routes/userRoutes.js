@@ -9,7 +9,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 //Methoden
-const { registerUser, findUserByEmail, findUserById, generateConfirmationToken, generateSessionToken, } = require("../utils/userService");
+const { registerUser, findUserByEmail, findUserById, handleFriendRequest, generateConfirmationToken, generateSessionToken, } = require("../utils/userService");
 const { sendEmail, resendConfirmationMail } = require("../utils/emailService");
 
   // Extra Sicherheit einbauen
@@ -153,4 +153,28 @@ router.post("/login", async (req, res, next) => {
     }
   });
   
+// PUT /api/user/friend-request
+/** using: pendingRequests: [
+      {
+        from: { type: Number, ref: 'User', required: true },
+        status: {
+          type: String,
+          enum: ['pending', 'accepted', 'denied'],
+          default: 'pending',
+        },
+      },
+    ], */
+router.put("/friend-request", auth, async (req, res, next) => {
+  const { userId } = req.body;
+  const sender = req.user;
+  const reciever = await findUserById(userId);
+
+  if (!reciever) {
+    return res.status(404).json({ msg: "Empfänger nicht gefunden" });
+  }
+  const res = await handleFriendRequest(sender, reciever);
+  return res.status(200).json({ msg });
+
+});
+
 module.exports = router;

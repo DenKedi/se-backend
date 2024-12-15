@@ -11,13 +11,13 @@ const UserSchema = new mongoose.Schema(
     isVisible: { type: Boolean, required: true, default: true },
     bio: { type: String, default: '' },
     chats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }],
-    friends: [{ type: Number, ref: 'User' }],
+    friends: [{ type: String, ref: 'User' }],
     pendingRequests: [
       {
-        from: { type: Number, ref: 'User', required: true },
+        from: { type: String, ref: 'User', required: true },
         status: {
           type: String,
-          enum: ['pending', 'accepted', 'denied'],
+          enum: ['pending', 'denied'],
           default: 'pending',
         },
       },

@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { sendEmail } = require('./emailService');
+const { GetIpFromSender } = require('sib-api-v3-sdk');
 
 
 
@@ -60,7 +61,40 @@ async function findUserById(id) {
         throw new Error("Benutzer nicht gefunden");
     }
 }
+async function handleFriendRequest( sender, recieverId){
+    try{
+        const reciever = await User.findById(recieverId);
+        if(!reciever){
+            throw new Error("Empfänger nicht gefunden");
+        }
+        // Case 1: Sender has a pending request from the reciever
+        if(sender.pendingRequests.includes({recieverId, status: "pending"})){
+           acceptAsFriends(sender, reciever);
+        }
+        // Case 2: Sender and reciever are already friends
+        // Case 3: Sender has already sent a request to the reciever
+        // Case 3.1: That request has been denied
+        // Case 3.2: That request is still pending
+        // Case 4: Sender has not sent a request to the reciever
+        // Case 5: Reciever is the sender
 
+    } catch (err) {
+        console.error("Error in handleFriendRequest:", err.message);
+        throw new Error("Freundschaftsanfrage konnte nicht bearbeitet werden");
+    }
+}
+
+async function acceptAsFriends(sender, reciever) {
+    sender.friends.push(reciever._id);
+    reciever.friends.push(sender._id);
+
+    sender.pendingRequests = sender.pendingRequests.filter(
+        request => request.recieverId.toString() !== reciever._id.toString()
+    );
+
+    await sender.save();
+    await reciever.save();
+}
 
 function generateConfirmationToken(id) {
     try {
@@ -89,4 +123,4 @@ function generateSessionToken(user) {
     }
 }
 
-module.exports = { registerUser, findUserByEmail, findUserById, generateConfirmationToken, generateSessionToken };
+module.exports = { registerUser, findUserByEmail, findUserById, handleFriendRequest, generateConfirmationToken, generateSessionToken };
