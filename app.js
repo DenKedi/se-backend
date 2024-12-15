@@ -1,6 +1,7 @@
 require("dotenv").config();
 
-const userRoutes = require("./routes/user");
+const userRoutes = require("./routes/userRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -8,6 +9,7 @@ const http = require("http");
 const socketIo = require("socket.io"); 
 
 const mongoose = require("mongoose");
+const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
@@ -36,12 +38,15 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(errorHandler);
 
 // Routes
 app.get("/", (req, res) => {
   res.send("Node.js backend is running!");
 });
 app.use("/api/user", userRoutes);
+app.use("/api/chat", chatRoutes);
+
 // Example API route
 app.post("/api/data", (req, res) => {
   const data = req.body;

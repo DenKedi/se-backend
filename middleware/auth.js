@@ -12,9 +12,10 @@ module.exports = function (req, res, next) {
 
   // Verify the token
   try {
-    const jwtSecret = process.env.JWT_SECRET; // Retrieve JWT secret from .env
+    const jwtSecret = process.env.JWT_SECRET; 
     const decoded = jwt.verify(token, jwtSecret); // Verify token with secret
     req.user = decoded.user; // Decoded payload has the user ID
+    console.log('Decoded', decoded);
     next(); // Proceed to the next middleware or route
   } catch (err) {
     res.status(401).json({ msg: 'Token is not valid' });
