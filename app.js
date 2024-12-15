@@ -4,10 +4,21 @@ const userRoutes = require("./routes/user");
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const http = require("http");
+const socketIo = require("socket.io"); 
 
 const mongoose = require("mongoose");
 
 const app = express();
+
+const server = http.createServer(app); // Create HTTP server
+const io = socketIo(server, {
+  cors: {
+    origin: ["http://localhost:4200"], // Allow Angular app
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true,
+  },
+});
 
 // Cors
 const whitelist = ["http://localhost:4200"];
@@ -47,8 +58,26 @@ mongoose
     process.exit(1); // Exit process with failure
   });
 
+
+// Socket.io
+io.on("connection", (socket) => {
+  console.log(`User connected: ${socket.id}`);
+
+  //Handle receiving mesage
+  socket.on("sendMessage", (message) => {
+    console.log("Message recieved: ", message);
+    io.emit("new Message", message);
+
+  });
+
+  //Handle disconnect
+  socket.on("disconnect", () => {
+    console.log(`User disconnected: ${socket.id}`);
+  });
+
+});
 // Start the server
 const PORT = process.env.PORT || 5005;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
