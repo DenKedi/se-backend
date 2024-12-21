@@ -63,7 +63,7 @@ async function findUserById(id) {
 }
 async function handleFriendRequest(sender, receiver) {
   try {
-    // Case 1: Reciever is the Sender
+    // Case 1: Receiver is the Sender
     if (receiver._id.toString() === sender._id.toString()) {
       return {
         msg: 'Du kannst dir nicht selbst eine Freundschaftsanfrage senden',
@@ -115,16 +115,34 @@ async function handleFriendRequest(sender, receiver) {
   }
 }
 
-async function acceptAsFriends(sender, reciever) {
-  sender.friends.push(reciever._id);
-  reciever.friends.push(sender._id);
+async function acceptAsFriends(sender, receiver) {
+  
+  sender.friends.push(receiver._id);
+  receiver.friends.push(sender._id);
 
   sender.pendingRequests = sender.pendingRequests.filter(
-    request => request.from.toString() !== reciever._id.toString()
+    request => request.from.toString() !== receiver._id.toString()
+  );
+  receiver.pendingRequests = receiver.pendingRequests.filter(
+    request => request.from.toString() !== sender._id.toString()
   );
 
   await sender.save();
-  await reciever.save();
+  await receiver.save();
+}
+
+async function denyFriendRequest(sender, receiver) {
+  const request = receiver.pendingRequests.filter(
+    request => request.from.toString() === sender._id.toString()
+  )[0];
+  request.status = 'denied';
+
+  receiver.pendingRequests = receiver.pendingRequests.map(request =>
+    request.from.toString() === sender._id.toString()
+      ? { ...request, status: 'denied' }
+      : request
+  );
+  await receiver.save();
 }
 
 function generateConfirmationToken(id) {
@@ -154,6 +172,7 @@ module.exports = {
   findUserById,
   handleFriendRequest,
   acceptAsFriends,
+  denyFriendRequest,
   generateConfirmationToken,
   generateSessionToken,
 };

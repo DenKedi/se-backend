@@ -9,7 +9,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 //Methoden
-const { registerUser, findUserByEmail, findUserById, handleFriendRequest, acceptAsFriends, generateConfirmationToken, generateSessionToken, } = require("../utils/userService");
+const { registerUser, findUserByEmail, findUserById, handleFriendRequest, acceptAsFriends, denyFriendRequest, generateConfirmationToken, generateSessionToken, } = require("../utils/userService");
 const { sendEmail, resendConfirmationMail } = require("../utils/emailService");
 
   // Extra Sicherheit einbauen
@@ -155,18 +155,16 @@ router.post("/login", async (req, res, next) => {
   
 // PUT /api/user/friend-request
 router.put("/friend-request", auth, async (req, res, next) => {
-  // user in req.user hat _id als id Attribut
-  // user in findUserById hat id als id Attribut
-  // Warum????
-  const { userId } = req.body;
+ 
+  const { receiverId } = req.body;
   const sender = await findUserById(req.user._id);
-  const reciever = await findUserById(userId);
+  const receiver = await findUserById(receiverId);
 
-  if (!reciever) {
+  if (!receiver) {
     return res.status(404).json({ msg: "Empfänger nicht gefunden" });
   }
 
-  const response = await handleFriendRequest(sender, reciever);
+  const response = await handleFriendRequest(sender, receiver);
   return res.status(response.status).json({ msg: response.msg });
 
 });
@@ -174,13 +172,26 @@ router.put("/friend-request", auth, async (req, res, next) => {
 // Put /api/user/accept-friend-request
 router.put("/accept-friend-request", auth, async (req, res, next) => {
   const { userId } = req.body;
-  const reciever = req.user;
+  const receiver = req.user;
   const sender = await findUserById(userId);
 
-  if (!sender) {
-    return res.status(404).json({ msg: "Absender nicht gefunden" });
+  if (!receiver) {
+    return res.status(404).json({ msg: "User nicht gefunden" });
   }
-  const response = await acceptAsFriends(sender, reciever);
+  const response = await acceptAsFriends(sender, receiver);
+  return res.status(response.status).json({ msg: response.msg });
+
+});
+
+router.put("/deny-friend-request", auth, async (req, res, next) => {
+  const { userId } = req.body;
+  const receiver = req.user;
+  const sender = await findUserById(userId);
+
+  if (!Receiver) {
+    return res.status(404).json({ msg: "User nicht gefunden" });
+  }
+  const response = await denyFriendRequest(sender, receiver);
   return res.status(response.status).json({ msg: response.msg });
 
 });
