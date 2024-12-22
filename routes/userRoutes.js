@@ -156,9 +156,12 @@ router.post("/login", async (req, res, next) => {
 // PUT /api/user/friend-request
 router.put("/friend-request", auth, async (req, res, next) => {
  
-  const { receiverId } = req.body;
+  const { userId } = req.body;
+  const receiver = await findUserById(userId);
   const sender = await findUserById(req.user._id);
-  const receiver = await findUserById(receiverId);
+
+  console.log("Receiver:", receiver);
+  console.log("Sender:", sender);
 
   if (!receiver) {
     return res.status(404).json({ msg: "Empfänger nicht gefunden" });
@@ -172,7 +175,7 @@ router.put("/friend-request", auth, async (req, res, next) => {
 // Put /api/user/accept-friend-request
 router.put("/accept-friend-request", auth, async (req, res, next) => {
   const { userId } = req.body;
-  const receiver = req.user;
+  const receiver = await findUserById(req.user._id);
   const sender = await findUserById(userId);
 
   if (!receiver) {
@@ -185,10 +188,10 @@ router.put("/accept-friend-request", auth, async (req, res, next) => {
 
 router.put("/deny-friend-request", auth, async (req, res, next) => {
   const { userId } = req.body;
-  const receiver = req.user;
+  const receiver = await findUserById(req.user._id);
   const sender = await findUserById(userId);
 
-  if (!Receiver) {
+  if (!receiver) {
     return res.status(404).json({ msg: "User nicht gefunden" });
   }
   const response = await denyFriendRequest(sender, receiver);

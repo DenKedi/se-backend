@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { sendEmail } = require('./emailService');
-const { GetIpFromSender } = require('sib-api-v3-sdk');
+const { request } = require('express');
 
 async function registerUser({ displayed_name, email, password }) {
   const existingUser = await User.findOne({ email });
@@ -73,17 +73,14 @@ async function handleFriendRequest(sender, receiver) {
 
     // Case 2: Sender has a pending request from the receiver
     
-    if (
-      sender.pendingRequests &&
-      sender.pendingRequests.length > 0 &&
-      sender.pendingRequests.some(request => {
-        request.from && request.from.toString() === receiver._id.toString()
-      })
-    ) {
-      await acceptAsFriends(sender, receiver);
-      return { msg: 'Freundschaftsanfrage angenommen', status: 200 };
-    } 
-    
+    if (sender.pendingRequests) {
+      for (let request of sender.pendingRequests) { 
+        if (request.from && request.from.toString() === receiver._id.toString()) {
+          await acceptAsFriends(sender, receiver);
+          return { msg: 'Freundschaftsanfrage angenommen', status: 200 };
+        }
+      }
+    }
 
    
     // Case 3: Sender and receiver are already friends
@@ -115,8 +112,16 @@ async function handleFriendRequest(sender, receiver) {
   }
 }
 
+
 async function acceptAsFriends(sender, receiver) {
-  
+  const request = receiver.pendingRequests.filter(
+    request => request.from.toString() === sender._id.toString
+  )[0];
+  if (!request) {
+    return { msg: 'Freundschaftsanfrage nicht gefunden', status: 404 };
+  }
+
+
   sender.friends.push(receiver._id);
   receiver.friends.push(sender._id);
 
@@ -129,12 +134,21 @@ async function acceptAsFriends(sender, receiver) {
 
   await sender.save();
   await receiver.save();
+
+  return { msg: 'Freundschaftsanfrage angenommen', status: 200 };
 }
 
 async function denyFriendRequest(sender, receiver) {
+  console.log(receiver);
   const request = receiver.pendingRequests.filter(
     request => request.from.toString() === sender._id.toString()
   )[0];
+  if (!request) {
+    return { msg: 'Freundschaftsanfrage nicht gefunden', status: 404 };
+  }
+  if (request.status === 'denied') {
+    return { msg: 'Freundschaftsanfrage wurde bereits abgelehnt', status: 200 };
+  }
   request.status = 'denied';
 
   receiver.pendingRequests = receiver.pendingRequests.map(request =>
@@ -143,6 +157,7 @@ async function denyFriendRequest(sender, receiver) {
       : request
   );
   await receiver.save();
+  return { msg: 'Freundschaftsanfrage abgelehnt', status: 200 };
 }
 
 function generateConfirmationToken(id) {
