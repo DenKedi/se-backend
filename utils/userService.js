@@ -41,12 +41,12 @@ async function findUserByEmail(email) {
     const user = await User.findOne({ email });
     if (!user) {
       console.error(`User with email ${email} not found`);
-      throw new Error('Benutzer nicht gefunden');
+      throw new Error('User nicht gefunden');
     }
     return user;
   } catch (err) {
     console.error('Error in findUserByEmail:', err.message);
-    throw new Error('Benutzer nicht gefunden');
+    throw new Error('User nicht gefunden');
   }
 }
 
@@ -54,11 +54,11 @@ async function findUserById(id) {
   try {
     const user = await User.findById(id);
     if (!user) {
-      throw new Error('Benutzer nicht gefunden');
+      throw new Error('User nicht gefunden');
     }
     return user; // Return the user
   } catch (err) {
-    throw new Error('Benutzer nicht gefunden');
+    throw new Error('User nicht gefunden');
   }
 }
 async function handleFriendRequest(sender, receiver) {
@@ -113,7 +113,7 @@ async function handleFriendRequest(sender, receiver) {
 }
 
 
-async function acceptAsFriends(sender, receiver) {
+async function acceptFriendRequest(sender, receiver) {
   const request = receiver.pendingRequests.filter(
     request => request.from.toString() === sender._id.toString
   )[0];
@@ -186,7 +186,7 @@ module.exports = {
   findUserByEmail,
   findUserById,
   handleFriendRequest,
-  acceptAsFriends,
+  acceptFriendRequest,
   denyFriendRequest,
   generateConfirmationToken,
   generateSessionToken,
