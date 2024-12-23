@@ -9,12 +9,12 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 //Methoden
-const { registerUser, findUserByEmail, findUserById, generateConfirmationToken, generateSessionToken, } = require("../utils/userService");
+const { registerUser, findUserByEmail, findUserById, handleFriendRequest, acceptFriendRequest, denyFriendRequest, generateConfirmationToken, generateSessionToken, acceptFriendRequest, } = require("../utils/userService");
 const { sendEmail, resendConfirmationMail } = require("../utils/emailService");
 
   // Extra Sicherheit einbauen
 //GET /api/user
-/*
+
 router.get("/", auth, async (req, res) => {
 
 
@@ -26,7 +26,7 @@ router.get("/", auth, async (req, res) => {
       res.status(500).send("Server error");
     }
   });
-*/
+
 
 
 //GET /api/user/me
@@ -43,7 +43,7 @@ router.get("/me", auth, async (req, res, next) => {
 router.get("/:id", async (req, res, next) => {
     try {
       const user = await User.findById(req.params.id);
-      if (!user) return res.status(404).json({ msg: "User not found" });
+      if (!user) return res.status(404).json({ msg: "User nicht gefunden" });
       res.json(user);
     } catch (err) {
       next(err);
@@ -93,12 +93,10 @@ router.put("/confirm-email", async (req, res, next) => {
       // Verify the confirmation token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const id = decoded.id;
-      console.log("Decoded ID:", id);
 
       const user = await findUserById(id);
       if (!user) {
-          console.log("User not found with ID:", id);
-          return res.status(400).json({ msg: "Benutzer nicht gefunden" });
+          return res.status(400).json({ msg: "User nicht gefunden" });
       }
 
       // Check if the user is already confirmed
@@ -153,4 +151,49 @@ router.post("/login", async (req, res, next) => {
     }
   });
   
+// PUT /api/user/friend-request
+router.put("/friend-request", auth, async (req, res, next) => {
+ 
+  const { userId } = req.body;
+  const receiver = await findUserById(userId);
+  const sender = await findUserById(req.user._id);
+
+  console.log("Receiver:", receiver);
+  console.log("Sender:", sender);
+
+  if (!receiver) {
+    return res.status(404).json({ msg: "Empfänger nicht gefunden" });
+  }
+
+  const response = await handleFriendRequest(sender, receiver);
+  return res.status(response.status).json({ msg: response.msg });
+
+});
+
+// Put /api/user/accept-friend-request
+router.put("/accept-friend-request", auth, async (req, res, next) => {
+  const { userId } = req.body;
+  const receiver = await findUserById(req.user._id);
+  const sender = await findUserById(userId);
+
+  if (!receiver) {
+    return res.status(404).json({ msg: "User nicht gefunden" });
+  }
+  const response = await acceptFriendRequest(sender, receiver);
+  return res.status(response.status).json({ msg: response.msg });
+
+});
+
+router.put("/deny-friend-request", auth, async (req, res, next) => {
+  const { userId } = req.body;
+  const receiver = await findUserById(req.user._id);
+  const sender = await findUserById(userId);
+
+  if (!receiver) {
+    return res.status(404).json({ msg: "User nicht gefunden" });
+  }
+  const response = await denyFriendRequest(sender, receiver);
+  return res.status(response.status).json({ msg: response.msg });
+
+});
 module.exports = router;

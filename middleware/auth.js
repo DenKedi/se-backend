@@ -2,7 +2,7 @@ require('dotenv').config();
 const jwt = require('jsonwebtoken');
 
 module.exports = function (reqOrSocket, resOrNext, next) {
-  const isSocket = reqOrSocket.handshake !== undefined; // Determine if it's a Socket.io connection
+  const isSocket = reqOrSocket.handshake !== undefined; // Zum feststellen ob die Request ein Http-Request oder eine Socket.io-Request ist
 
   if (isSocket) {
     // Socket.io authentication
@@ -17,7 +17,7 @@ module.exports = function (reqOrSocket, resOrNext, next) {
     try {
       const jwtSecret = process.env.JWT_SECRET;
       const decoded = jwt.verify(token, jwtSecret);
-      socket.user = decoded.user; // Attach user info to socket
+      socket.user = decoded.user;
       nextFunc();
     } catch (err) {
       nextFunc(new Error('Authentication error: Invalid token'));
@@ -35,7 +35,7 @@ module.exports = function (reqOrSocket, resOrNext, next) {
     try {
       const jwtSecret = process.env.JWT_SECRET;
       const decoded = jwt.verify(token, jwtSecret);
-      req.user = decoded.user; // Attach user info to request
+      req.user = decoded.user; 
       next();
     } catch (err) {
       res.status(401).json({ msg: 'Token is not valid' });
