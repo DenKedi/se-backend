@@ -139,7 +139,6 @@ async function acceptFriendRequest(sender, receiver) {
 }
 
 async function denyFriendRequest(sender, receiver) {
-  console.log(receiver);
   const request = receiver.pendingRequests.filter(
     request => request.from.toString() === sender._id.toString()
   )[0];
@@ -162,7 +161,6 @@ async function denyFriendRequest(sender, receiver) {
 
 function generateConfirmationToken(id) {
   try {
-    console.log('Generating token for ID:', id); // Debugging
     return jwt.sign({ id: id }, process.env.JWT_SECRET, { expiresIn: '24h' });
   } catch (err) {
     console.error('Error generating confirmation token:', err.message);

@@ -5,14 +5,13 @@ const router = express.Router();
 const auth = require("../middleware/auth"); // Import the auth middleware
 const User = require("../models/User"); // Import the User model
 const bcrypt = require("bcryptjs");
-//const { sendMail } = require("../utils/emailService");
 const jwt = require("jsonwebtoken");
 
 //Methoden
-const { registerUser, findUserByEmail, findUserById, handleFriendRequest, acceptFriendRequest, denyFriendRequest, generateConfirmationToken, generateSessionToken, acceptFriendRequest, } = require("../utils/userService");
+const { registerUser, findUserByEmail, findUserById, handleFriendRequest, acceptFriendRequest, denyFriendRequest, generateConfirmationToken, generateSessionToken} = require("../utils/userService");
 const { sendEmail, resendConfirmationMail } = require("../utils/emailService");
 
-  // Extra Sicherheit einbauen
+
 //GET /api/user
 
 router.get("/", auth, async (req, res) => {
