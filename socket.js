@@ -8,6 +8,7 @@ module.exports = (io) => {
     
     socket.on('joinRoom', (chatId) => {
       socket.join(chatId);
+      
       console.log(`User ${socket.id} joined room: ${chatId}`);
     });
 
