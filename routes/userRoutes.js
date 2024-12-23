@@ -22,11 +22,22 @@ router.get("/", auth, async (req, res) => {
       res.json(users);
     } catch (err) {
       console.error(err.message);
-      res.status(500).send("Server error");
+      next(err);
     }
   });
 
 
+//GET /api/user/find
+router.get("/find", auth, async (req, res, next) => {
+
+  const filters = { ...req.query };
+  try {
+    const users = await User.find(filters);
+    res.json(users);
+  } catch (err) {
+    next(err);
+  }
+});
 
 //GET /api/user/me
 router.get("/me", auth, async (req, res, next) => {

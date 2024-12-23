@@ -2,6 +2,7 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { sendEmail } = require('./emailService');
 const { request } = require('express');
+const { setupChat } = require('./chatService');
 
 async function registerUser({ displayed_name, email, password }) {
   const existingUser = await User.findOne({ email });
@@ -76,7 +77,7 @@ async function handleFriendRequest(sender, receiver) {
     if (sender.pendingRequests) {
       for (let request of sender.pendingRequests) { 
         if (request.from && request.from.toString() === receiver._id.toString()) {
-          await acceptAsFriends(sender, receiver);
+          await acceptFriendRequest(sender, receiver);
           return { msg: 'Freundschaftsanfrage angenommen', status: 200 };
         }
       }
@@ -115,12 +116,11 @@ async function handleFriendRequest(sender, receiver) {
 
 async function acceptFriendRequest(sender, receiver) {
   const request = receiver.pendingRequests.filter(
-    request => request.from.toString() === sender._id.toString
+    request => request.from.toString() === sender._id.toString()
   )[0];
   if (!request) {
     return { msg: 'Freundschaftsanfrage nicht gefunden', status: 404 };
   }
-
 
   sender.friends.push(receiver._id);
   receiver.friends.push(sender._id);
@@ -134,7 +134,9 @@ async function acceptFriendRequest(sender, receiver) {
 
   await sender.save();
   await receiver.save();
-
+  // NEU
+  await setupChat([sender, receiver]); 
+  // ENDE NEU
   return { msg: 'Freundschaftsanfrage angenommen', status: 200 };
 }
 
@@ -178,6 +180,7 @@ function generateSessionToken(user) {
     throw err;
   }
 }
+
 
 module.exports = {
   registerUser,
