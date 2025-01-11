@@ -18,12 +18,12 @@ const server = http.createServer(app);
 
 // Initialize Socket.io
 const io = new Server(server, {
-  path: "/socket.io",
-  cors: {
-    origin: "http://localhost:4200",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true,
-  },
+    path: "/socket.io",
+    cors: {
+        origin: "http://localhost:4200",
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        credentials: true,
+    },
 });
 
 const corsOptions = {
@@ -44,17 +44,17 @@ app.use("/api/chat", chatRoutes);
 
 // MongoDB Connection
 mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => {
-    console.error("MongoDB connection error:", err);
-    process.exit(1);
-  });
+    .connect(process.env.MONGO_URI)
+    .then(() => console.log("MongoDB connected"))
+    .catch((err) => {
+        console.error("MongoDB connection error:", err);
+        process.exit(1);
+    });
 
 // Attach Socket.io server logic
 socketServer(io);
 
 // Start server
 server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });

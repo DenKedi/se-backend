@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const ChatSchema = new mongoose.Schema({
-  participiants: [{ type: Number, ref: 'User' }],
+  participiants: [{ type: String, ref: 'User' }],
   messages: [
     {
       from: { type: Number, ref: 'User' },

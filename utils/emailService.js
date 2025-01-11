@@ -41,5 +41,4 @@ async function resendConfirmationMail(email, confirmationToken) {
   await sendEmail(email, emailSubject, emailContent);
 }
 
-
 module.exports = { sendEmail, resendConfirmationMail };

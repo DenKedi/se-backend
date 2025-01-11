@@ -5,14 +5,12 @@ module.exports = (io) => {
   io.on('connection', (socket) => {
     console.log(`User connected: ${socket.id}`);
 
-    
     socket.on('joinRoom', (chatId) => {
       socket.join(chatId);
       
       console.log(`User ${socket.id} joined room: ${chatId}`);
     });
 
-    
     socket.on('sendMessage', async ({ chatId, senderId, text }) => {
       try {
         const chat = await Chat.findById(chatId);

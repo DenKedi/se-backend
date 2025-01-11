@@ -62,6 +62,7 @@ async function findUserById(id) {
     throw new Error('User nicht gefunden');
   }
 }
+
 async function handleFriendRequest(sender, receiver) {
   try {
     // Case 1: Receiver is the Sender
@@ -73,7 +74,6 @@ async function handleFriendRequest(sender, receiver) {
     } 
 
     // Case 2: Sender has a pending request from the receiver
-    
     if (sender.pendingRequests) {
       for (let request of sender.pendingRequests) { 
         if (request.from && request.from.toString() === receiver._id.toString()) {
@@ -82,7 +82,6 @@ async function handleFriendRequest(sender, receiver) {
         }
       }
     }
-
    
     // Case 3: Sender and receiver are already friends
     if (sender.friends && sender.friends.includes(receiver._id.toString())) {
@@ -112,7 +111,6 @@ async function handleFriendRequest(sender, receiver) {
     throw new Error('Freundschaftsanfrage konnte nicht bearbeitet werden');
   }
 }
-
 
 async function acceptFriendRequest(sender, receiver) {
   const request = receiver.pendingRequests.filter(
@@ -180,7 +178,6 @@ function generateSessionToken(user) {
     throw err;
   }
 }
-
 
 module.exports = {
   registerUser,
