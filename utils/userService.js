@@ -133,7 +133,7 @@ async function acceptFriendRequest(sender, receiver) {
   await sender.save();
   await receiver.save();
   // NEU
-  await setupChat([sender, receiver]); 
+  await setupChat(sender, receiver);
   // ENDE NEU
   return { msg: 'Freundschaftsanfrage angenommen', status: 200 };
 }

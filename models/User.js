@@ -10,7 +10,10 @@ const UserSchema = new mongoose.Schema(
     isConfirmed: { type: Boolean, required: true, default: false },
     isVisible: { type: Boolean, required: true, default: true },
     bio: { type: String, default: '' },
-    chats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }],
+    chats: [{
+        chatId: { type: mongoose.Schema.Types.ObjectId, ref: 'Chat' },
+        friendId: { type: String, ref: 'User' },
+    }],
     friends: [{ type: String, ref: 'User' }],
     pendingRequests: [
       {

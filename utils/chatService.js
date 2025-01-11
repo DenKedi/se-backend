@@ -3,15 +3,18 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { request } = require('express');
 
-async function setupChat(users) {
+async function setupChat(sender, receiver) {
     const chat = new Chat({
-        participiants: users.map((user) => user._id),
+        participiants: [sender._id, receiver._id],
     });
+
     await chat.save();
-    for (const user of users) {
-        user.chats.push(chat._id);
-        await user.save();
-    }
+
+    sender.chats.push({ chatId: chat._id, friendId: receiver._id });
+    await sender.save();
+
+    receiver.chats.push({ chatId: chat._id, friendId: sender._id });
+    await receiver.save();
 }
 
 module.exports = {

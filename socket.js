@@ -6,6 +6,13 @@ module.exports = (io) => {
     console.log(`User connected: ${socket.id}`);
 
     socket.on('joinRoom', (chatId) => {
+      const currentRooms = Object.keys(socket.rooms);
+      currentRooms.forEach(room => {
+        if (room !== socket.id) {
+          socket.leave(room);
+        }
+      });
+
       socket.join(chatId);
       
       console.log(`User ${socket.id} joined room: ${chatId}`);
