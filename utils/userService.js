@@ -63,6 +63,20 @@ async function findUserById(id) {
   }
 }
 
+async function findUserByIndex(user_id) {
+  try {
+    // convert user_id to number
+    user_id = parseInt(user_id);
+    const user = await User.findOne({ user_id });
+    if (!user) {
+      throw new Error('User nicht gefunden');
+    }
+    return user;
+  } catch (err) {
+    throw new Error('User nicht gefunden');
+  }
+}
+
 async function handleFriendRequest(sender, receiver) {
   try {
     // Case 1: Receiver is the Sender
@@ -183,6 +197,7 @@ module.exports = {
   registerUser,
   findUserByEmail,
   findUserById,
+  findUserByIndex,
   handleFriendRequest,
   acceptFriendRequest,
   denyFriendRequest,

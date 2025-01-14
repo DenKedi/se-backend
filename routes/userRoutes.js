@@ -8,7 +8,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 //Methoden
-const { registerUser, findUserByEmail, findUserById, handleFriendRequest, acceptFriendRequest, denyFriendRequest, generateConfirmationToken, generateSessionToken} = require("../utils/userService");
+const { registerUser, findUserByEmail, findUserById, findUserByIndex, handleFriendRequest, acceptFriendRequest, denyFriendRequest, generateConfirmationToken, generateSessionToken} = require("../utils/userService");
 const { sendEmail, resendConfirmationMail } = require("../utils/emailService");
 
 //GET /api/user
@@ -43,9 +43,20 @@ router.get("/me", auth, async (req, res, next) => {
     }
 });
 
-router.get("/:id", async (req, res, next) => {
+router.get("/byID/:id", async (req, res, next) => {
     try {
-        const user = await User.findById(req.params.id);
+        //Try findById or alternatively findByIndex
+        const user = await findUserById(req.params.id);
+        if (!user) return res.status(404).json({ msg: "User nicht gefunden" });
+        res.json(user);
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get("/byIndex/:index", async (req, res, next) => {
+    try {
+        const user = await findUserByIndex(req.params.index);
         if (!user) return res.status(404).json({ msg: "User nicht gefunden" });
         res.json(user);
     } catch (err) {
@@ -151,8 +162,8 @@ router.post("/login", async (req, res, next) => {
   
 // PUT /api/user/friend-request
 router.put("/friend-request", auth, async (req, res, next) => {
-    const { userId } = req.body;
-    const receiver = await findUserById(userId);
+    const { userIndex } = req.body;
+    const receiver = await findUserByIndex(userIndex);
     const sender = await findUserById(req.user._id);
 
     console.log("Receiver:", receiver);
