@@ -1,45 +1,44 @@
-const Chat = require('./models/Chat');
+const jwt = require('jsonwebtoken');
+const { getChat, pushMessageToChat } = require('./utils/chatService');
+const errorHandler = require('./middleware/errorHandler');
 const auth = require('./middleware/auth');
 
 module.exports = (io) => {
+  
+  io.use((socket, next) => auth(socket, next));
+
   io.on('connection', (socket) => {
-    console.log(`User connected: ${socket.id}`);
+    console.log(`User connected: ${socket.id}, User ID: ${socket.user._id}`);
 
-    socket.on('joinRoom', (chatId) => {
-      const currentRooms = Object.keys(socket.rooms);
-      currentRooms.forEach(room => {
-        if (room !== socket.id) {
-          socket.leave(room);
-        }
-      });
-
-      socket.join(chatId);
-      
-      console.log(`User ${socket.id} joined room: ${chatId}`);
-    });
-
-    socket.on('sendMessage', async ({ chatId, senderId, text }) => {
+    
+    socket.on('joinRoom', async ({ chatId }) => {
       try {
-        const chat = await Chat.findById(chatId);
-        if (!chat) return console.error('Chat not found.');
+        socket.join(chatId);
+        console.log(`User ${socket.user._id} joined room: ${chatId}`);
 
-        // save message
-        const message = { sender: senderId, text };
-        chat.messages.push(message);
-        await chat.save();
-
-        // Broadcast message to the room
-        io.to(chatId).emit('newMessage', message);
+        
+        const chatData = await getChat(chatId, socket.user._id);
+        socket.emit('chatData', chatData);
       } catch (err) {
-        console.error('Error sending message:', err);
+        errorHandler(err, { socket });
       }
     });
 
-    // Handle user disconnect
+    
+    socket.on('sendMessage', async ({ chatId, text }) => {
+      try {
+        
+        const chatData = await pushMessageToChat(chatId, socket.user._id, text);
+
+        const newMessage = chatData.messages[chatData.messages.length - 1];
+        io.to(chatId).emit('newMessage', newMessage);
+      } catch (err) {
+        errorHandler(err, { socket });
+      }
+    });
+
     socket.on('disconnect', () => {
       console.log(`User disconnected: ${socket.id}`);
     });
   });
-
-  io.use(auth);
 };

@@ -57,7 +57,7 @@ async function findUserById(id) {
     if (!user) {
       throw new Error('User nicht gefunden');
     }
-    return user; // Return the user
+    return user;
   } catch (err) {
     throw new Error('User nicht gefunden');
   }

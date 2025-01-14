@@ -1,10 +1,22 @@
-module.exports = (err, req, res, next) => {
-    console.error(err.stack); // Logge den Fehler für Debugging
-    
-    const statusCode = err.statusCode || 500; // Standard-Statuscode auf 500 setzen
-    res.status(statusCode).json({
+const errorHandler = (err, req, res, next) => {
+    console.error(err.stack); 
+
+    const statusCode = err.statusCode || 500; 
+    const errorResponse = {
         success: false,
-        message: err.message || "Serverfehler",
+        message: err.message || "Server error",
         name: err.name,
-    });
+    };
+
+    // Für Express errors
+    if (res) {
+        return res.status(statusCode).json(errorResponse);
+    }
+
+    // Für Socket errors
+    if (req && req.socket) {
+        req.socket.emit("error", errorResponse);
+    }
 };
+
+module.exports = errorHandler;
