@@ -173,6 +173,18 @@ async function denyFriendRequest(sender, receiver) {
   return { msg: 'Freundschaftsanfrage abgelehnt', status: 200 };
 }
 
+async function removeFriend(sender, receiver) {
+  sender.friends = sender.friends.filter(
+    friend => friend.toString() !== receiver._id.toString()
+  );
+  receiver.friends = receiver.friends.filter(
+    friend => friend.toString() !== sender._id.toString()
+  );
+  await sender.save();
+  await receiver.save();
+  return { msg: 'Freundschaft beendet', status: 200 };
+}
+
 function generateConfirmationToken(id) {
   try {
     return jwt.sign({ id: id }, process.env.JWT_SECRET, { expiresIn: '24h' });
@@ -201,6 +213,7 @@ module.exports = {
   handleFriendRequest,
   acceptFriendRequest,
   denyFriendRequest,
+  removeFriend,
   generateConfirmationToken,
   generateSessionToken,
 };

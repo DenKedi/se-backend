@@ -8,7 +8,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 //Methoden
-const { registerUser, findUserByEmail, findUserById, findUserByIndex, handleFriendRequest, acceptFriendRequest, denyFriendRequest, generateConfirmationToken, generateSessionToken} = require("../utils/userService");
+const { registerUser, findUserByEmail, findUserById, findUserByIndex, handleFriendRequest, acceptFriendRequest, denyFriendRequest, removeFriend, generateConfirmationToken, generateSessionToken} = require("../utils/userService");
 const { sendEmail, resendConfirmationMail } = require("../utils/emailService");
 
 //GET /api/user
@@ -201,6 +201,19 @@ router.put("/deny-friend-request", auth, async (req, res, next) => {
     }
 
     const response = await denyFriendRequest(sender, receiver);
+    return res.status(response.status).json({ msg: response.msg });
+});
+
+router.put("/remove-friend", auth, async (req, res, next) => {
+    const { userId } = req.body;
+    const user = await findUserById(req.user._id);
+    const friend = await findUserById(userId);
+
+    if (!user) {
+        return res.status(404).json({ msg: "User nicht gefunden" });
+    }
+
+    const response = await removeFriend(user, friend);
     return res.status(response.status).json({ msg: response.msg });
 });
 
