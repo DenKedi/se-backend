@@ -45,7 +45,7 @@ async function pushMessageToChat(chatId, userId, text) {
       throw new Error('Chat not found');
     }
 
-    const message = { sender: userId, text };
+    const message = { from: userId, text };
     chat.messages.push(message);
     await chat.save();
 

@@ -4,7 +4,7 @@ const ChatSchema = new mongoose.Schema({
   participiants: [{ type: String, ref: 'User' }],
   messages: [
     {
-      from: { type: Number, ref: 'User' },
+      from: { type: String, ref: 'User' },
       text: { type: String, required: true },
       timestamp: { type: Date, default: Date.now },
       isDeleted: { type: Boolean, default: false },
