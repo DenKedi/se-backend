@@ -35,7 +35,7 @@ async function resendConfirmationMail(email, confirmationToken) {
   const emailContent = `
     <h1>Willkommen bei Plausch!</h1>
     <p>Bitte bestätige deine E-Mail-Adresse, um deinen Account zu aktivieren.</p>
-    <a href="http://localhost:3000/confirm/${confirmationToken}">Hier klicken, um zu bestätigen</a>
+    <a href="https://plausch.live/confirm/${confirmationToken}">Hier klicken, um zu bestätigen</a>
   `;
 
   await sendEmail(email, emailSubject, emailContent);
