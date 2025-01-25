@@ -57,7 +57,11 @@ router.get("/byID/:id", async (req, res, next) => {
 router.get("/byIndex/:index", async (req, res, next) => {
     try {
         const user = await findUserByIndex(req.params.index);
-        if (!user) return res.status(404).json({ msg: "User nicht gefunden" });
+        if (!user){
+            return res.status(404).json({ msg: "User nicht gefunden" });
+        } else{
+            console.log(user);
+        }
         res.json(user);
     } catch (err) {
         next(err);

@@ -68,12 +68,9 @@ async function findUserByIndex(user_id) {
     // convert user_id to number
     user_id = parseInt(user_id);
     const user = await User.findOne({ user_id });
-    if (!user) {
-      throw new Error('User nicht gefunden');
-    }
     return user;
   } catch (err) {
-    throw new Error('User nicht gefunden');
+    throw new Error('Fehler bei der Suche nach User');
   }
 }
 

@@ -13,24 +13,32 @@ const socketServer = require('./socket'); // Import the socket server logic
 const app = express();
 const PORT = process.env.PORT || 5005;
 
-// Create HTTP server
-const server = http.createServer(app);
-
-// Initialize Socket.io
-const io = new Server(server, {
-    path: "/socket.io",
-    cors: {
-        origin: "http://localhost:4200",
-        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        credentials: true,
-    },
-});
-
+// CORS
 const corsOptions = {
-    origin: "http://localhost:4200",
+    origin: (origin, callback) => {
+        const allowedOrigins = [
+            /^https:\/\/([a-z0-9-]+\.)*plausch\.live$/, 
+            /^http:\/\/localhost(:\d+)?$/             
+        ];
+
+        if (!origin || allowedOrigins.some((regex) => regex.test(origin))) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
 };
+
+// HTTP Server
+const server = http.createServer(app);
+
+// Socket.io
+const io = new Server(server, {
+    path: "/socket.io",
+    cors: corsOptions,
+});
 
 // Middleware
 app.use(cors(corsOptions));
@@ -42,7 +50,7 @@ app.use(errorHandler);
 app.use("/api/user", userRoutes);
 app.use("/api/chat", chatRoutes);
 
-// MongoDB Connection
+// MongoDB
 mongoose
     .connect(process.env.MONGO_URI)
     .then(() => console.log("MongoDB connected"))
@@ -51,10 +59,9 @@ mongoose
         process.exit(1);
     });
 
-// Attach Socket.io server logic
 socketServer(io);
 
-// Start server
+// Start
 server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
