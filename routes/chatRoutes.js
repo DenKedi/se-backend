@@ -1,8 +1,8 @@
-require("dotenv").config(); // Load environment variables from .env
+require("dotenv").config(); 
 
 const express = require("express");
 const router = express.Router();
-const auth = require("../middleware/auth"); // Import the auth middleware
+const auth = require("../middleware/auth");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 

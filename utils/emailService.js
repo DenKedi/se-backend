@@ -1,18 +1,18 @@
 const nodemailer = require('nodemailer');
 require("dotenv").config();
 
-// SMTP configuration
+// SMTP
 const transporter = nodemailer.createTransport({
   host: 'smtp-relay.brevo.com',
   port: 587,
-  secure: false, // Use STARTTLS, not SSL/TLS
+  secure: false, 
   auth: {
     user: process.env.BREVO_USER, 
     pass: process.env.BREVO_PASS,        
   },
 });
 
-// Function to send email
+
 async function sendEmail(to, subject, html) {
   try {
     const info = await transporter.sendMail({
@@ -22,14 +22,14 @@ async function sendEmail(to, subject, html) {
       html,                                         
     });
     console.log('Email sent to: ', to);
-    return info; //Returnen wir einfach mal und gucken wohin es uns führt
+    return info; 
   } catch (error) {
     console.error('Error sending email:', error);
     throw new Error('Error sending email');
   }
 }
 
-// Function to resend confirmation email
+
 async function resendConfirmationMail(email, confirmationToken) {
   const emailSubject = 'Plausch - Bestätige deine E-Mail-Adresse';
   const emailContent = `

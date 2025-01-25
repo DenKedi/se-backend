@@ -104,7 +104,7 @@ router.put("/confirm-email", async (req, res, next) => {
     const { token } = req.query;
 
     try {
-        // Verify the confirmation token
+        
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const id = decoded.id;
 
@@ -113,20 +113,20 @@ router.put("/confirm-email", async (req, res, next) => {
             return res.status(400).json({ msg: "User nicht gefunden" });
         }
 
-        // Check if the user is already confirmed
+      
         if (user.isConfirmed) {
             return res.status(400).json({ msg: "Email bereits bestätigt" });
         }
 
-        // Update the user's confirmation status
+      
         user.isConfirmed = true;
         await user.save();
         const sessionToken = generateSessionToken(user);
 
-        // Include the token in the response
+       
         res.status(200).json({
             msg: "E-Mail erfolgreich bestätigt. Du kannst dich nun anmelden.",
-            sessionToken // Return the original token
+            sessionToken 
         });
     } catch (error) {
         console.error("Token verification failed:", error);
@@ -139,18 +139,18 @@ router.post("/login", async (req, res, next) => {
     const { email, password } = req.body;
   
     try {
-        // Check if user exists
+     
         let user = await User.findOne({ email });
         if (!user) {
             return res.status(400).json({ msg: "Ungültige Anmeldedaten" });
         }
   
-        // Check if user email is confirmed
+      
         if (!user.isConfirmed) {
             return res.status(403).json({ msg: "Bitte bestätige zuerst deine E-Mail Adresse." });
         }
   
-        // Compare the provided password with the hashed password stored in the database
+       
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ msg: "Ungültige Anmeldedaten" });

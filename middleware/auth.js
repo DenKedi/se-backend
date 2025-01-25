@@ -5,7 +5,7 @@ module.exports = function (reqOrSocket, resOrNext, next) {
   const isSocket = reqOrSocket.handshake !== undefined; // Zum feststellen ob die Request ein Http-Request oder eine Socket.io-Request ist
 
   if (isSocket) {
-    // Socket.io authentication
+   
     const socket = reqOrSocket;
     const nextFunc = resOrNext;
 
@@ -23,7 +23,7 @@ module.exports = function (reqOrSocket, resOrNext, next) {
       nextFunc(new Error('Authentication error: Invalid token'));
     }
   } else {
-    // Express authentication
+   
     const req = reqOrSocket;
     const res = resOrNext;
 
