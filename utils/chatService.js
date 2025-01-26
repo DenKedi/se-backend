@@ -21,7 +21,7 @@ async function getChat(chatId, userId) {
     try {
       const user = await User.findById(userId);
       if (!user) {
-        console.log(userId);
+       
         throw new Error('User not found');
       }
   

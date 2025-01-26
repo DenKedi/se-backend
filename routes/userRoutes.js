@@ -59,8 +59,6 @@ router.get("/byIndex/:index", async (req, res, next) => {
         const user = await findUserByIndex(req.params.index);
         if (!user){
             return res.status(404).json({ msg: "User nicht gefunden" });
-        } else{
-            console.log(user);
         }
         res.json(user);
     } catch (err) {
@@ -169,9 +167,6 @@ router.put("/friend-request", auth, async (req, res, next) => {
     const { userIndex } = req.body;
     const receiver = await findUserByIndex(userIndex);
     const sender = await findUserById(req.user._id);
-
-    console.log("Receiver:", receiver);
-    console.log("Sender:", sender);
 
     if (!receiver) {
         return res.status(404).json({ msg: "Empfänger nicht gefunden" });

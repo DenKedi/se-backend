@@ -27,8 +27,6 @@ async function registerUser({ displayed_name, email, password }) {
     const emailContent = `Bitte folge diesem Link, um deine E-Mail Adresse zu bestätigen: <a href="${confirmUrl}">Klick</a>`;
 
     await sendEmail(newUser.email, emailSubject, emailContent);
-    console.log('Confirmation Token:', confirmationToken);
-
     await newUser.save();
     return newUser;
   } catch (err) {
