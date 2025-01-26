@@ -22,7 +22,7 @@ async function registerUser({ displayed_name, email, password }) {
 
   try {
     const confirmationToken = generateConfirmationToken(newUser.id);
-    const confirmUrl = `http://localhost:4200/confirm-email?token=${confirmationToken}`;
+    const confirmUrl = `https://plausch.live/confirm-email?token=${confirmationToken}`;
     const emailSubject = 'Bestätige deine E-Mail Adresse für Plausch';
     const emailContent = `Bitte folge diesem Link, um deine E-Mail Adresse zu bestätigen: <a href="${confirmUrl}">Klick</a>`;
 
