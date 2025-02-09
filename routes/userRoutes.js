@@ -1,17 +1,17 @@
-require("dotenv").config(); // Load environment variables from .env
+require("dotenv").config(); 
 
 const express = require("express");
 const router = express.Router();
-const auth = require("../middleware/auth"); // Import the auth middleware
-const User = require("../models/User"); // Import the User model
+const auth = require("../middleware/auth");
+const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-//Methoden
 const { registerUser, findUserByEmail, findUserById, findUserByIndex, handleFriendRequest, acceptFriendRequest, denyFriendRequest, removeFriend, generateConfirmationToken, generateSessionToken} = require("../utils/userService");
 const { sendEmail, resendConfirmationMail } = require("../utils/emailService");
 
 //GET /api/user
+/*
 router.get("/", auth, async (req, res) => {
     try {
         const users = await User.find();
@@ -21,6 +21,7 @@ router.get("/", auth, async (req, res) => {
         next(err);
     }
 });
+*/
 
 //GET /api/user/find
 router.get("/find", auth, async (req, res, next) => {
@@ -60,6 +61,9 @@ router.get("/byIndex/:index", async (req, res, next) => {
         if (!user){
             return res.status(404).json({ msg: "User nicht gefunden" });
         }
+        if(!user.isVisible){
+            return res.status(404).json({ msg: "User nicht gefunden" });
+        }
         res.json(user);
     } catch (err) {
         next(err);
@@ -76,6 +80,36 @@ router.post("/register", async (req, res, next) => {
     }
 });
 
+// POST /api/user/login
+router.post("/login", async (req, res, next) => {
+    const { email, password } = req.body;
+  
+    try {
+     
+        let user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ msg: "Ungültige Anmeldedaten" });
+        }
+  
+      
+        if (!user.isConfirmed) {
+            return res.status(403).json({ msg: "Bitte bestätige zuerst deine E-Mail Adresse." });
+        }
+  
+       
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ msg: "Ungültige Anmeldedaten" });
+        }
+  
+        const token = generateSessionToken(user);
+        res.json({ token });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server error");
+    }
+});
+  
 //POST /api/user/resend-confirmation
 router.post("/resend-confirmation", async (req, res, next) => {
     const { email } = req.body;
@@ -132,36 +166,7 @@ router.put("/confirm-email", async (req, res, next) => {
     }
 });
 
-// POST /api/user/login
-router.post("/login", async (req, res, next) => {
-    const { email, password } = req.body;
-  
-    try {
-     
-        let user = await User.findOne({ email });
-        if (!user) {
-            return res.status(400).json({ msg: "Ungültige Anmeldedaten" });
-        }
-  
-      
-        if (!user.isConfirmed) {
-            return res.status(403).json({ msg: "Bitte bestätige zuerst deine E-Mail Adresse." });
-        }
-  
-       
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ msg: "Ungültige Anmeldedaten" });
-        }
-  
-        const token = generateSessionToken(user);
-        res.json({ token });
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send("Server error");
-    }
-});
-  
+
 // PUT /api/user/friend-request
 router.put("/friend-request", auth, async (req, res, next) => {
     const { userIndex } = req.body;
@@ -215,5 +220,20 @@ router.put("/remove-friend", auth, async (req, res, next) => {
     const response = await removeFriend(user, friend);
     return res.status(response.status).json({ msg: response.msg });
 });
+
+router.put("/change-visibility", auth, async (req, res, next) => {
+    const { isVisible } = req.body;
+    const user = await findUserById(req.user._id);
+
+    if (!user) {
+        return res.status(404).json({ msg: "User nicht gefunden" });
+    }
+
+    user.isVisible = isVisible;
+    await user.save();
+    return res.status(200).json({ msg: "Sichtbarkeit geändert" });
+}
+);
+
 
 module.exports = router;
