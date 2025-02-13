@@ -74,6 +74,13 @@ async function findUserByIndex(user_id) {
 
 async function handleFriendRequest(sender, receiver) {
   try {
+    // Extra Case
+    if(!receiver.isVisible) {
+      return {
+        msg: 'Dieser Benutzer möchte keine Freundschaftsanfragen erhalten',
+        status: 400,
+      };
+    }
     // Case 1: Receiver is the Sender
     if (receiver._id.toString() === sender._id.toString()) {
       return {

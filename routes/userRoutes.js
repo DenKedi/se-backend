@@ -224,7 +224,7 @@ router.put("/remove-friend", auth, async (req, res, next) => {
 router.put("/change-visibility", auth, async (req, res, next) => {
     const { isVisible } = req.body;
     const user = await findUserById(req.user._id);
-
+    
     if (!user) {
         return res.status(404).json({ msg: "User nicht gefunden" });
     }
