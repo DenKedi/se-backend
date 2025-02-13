@@ -5,7 +5,6 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
-const chatRoutes = require("./routes/chatRoutes");
 const errorHandler = require('./middleware/errorHandler');
 const { Server } = require("socket.io");
 const socketServer = require('./socket'); // Import the socket server logic
@@ -48,8 +47,6 @@ app.use(errorHandler);
 
 // Routes
 app.use("/api/user", userRoutes);
-app.use("/api/chat", chatRoutes);
-
 // MongoDB
 mongoose
     .connect(process.env.MONGO_URI)
