@@ -46,6 +46,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(errorHandler);
 
+// Make io available to routes
+app.set('io', io);
+
 // Routes
 app.use('/api/user', userRoutes);
 // MongoDB

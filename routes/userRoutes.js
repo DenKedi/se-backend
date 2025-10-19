@@ -212,6 +212,20 @@ router.put('/friend-request', auth, async (req, res, next) => {
   }
 
   const response = await handleFriendRequest(sender, receiver);
+  
+  // Emit socket event to receiver
+  const io = req.app.get('io');
+  if (io) {
+    io.emit('friendRequest', {
+      receiverId: receiver._id.toString(),
+      sender: {
+        _id: sender._id,
+        user_id: sender.user_id,
+        displayed_name: sender.displayed_name
+      }
+    });
+  }
+  
   return res.status(response.status).json({ msg: response.msg });
 });
 

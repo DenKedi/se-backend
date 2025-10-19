@@ -31,7 +31,7 @@ module.exports = (io) => {
         const chatData = await pushMessageToChat(chatId, socket.user._id, text);
 
         const newMessage = chatData.messages[chatData.messages.length - 1];
-        io.to(chatId).emit('newMessage', newMessage);
+        io.to(chatId).emit('newMessage', { message: newMessage, chatId });
       } catch (err) {
         errorHandler(err, { socket });
       }
