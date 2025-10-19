@@ -17,23 +17,18 @@ async function registerUser({ displayed_name, email, password }) {
       throw error;
     } else {
       // User exists but not confirmed - resend confirmation email
-      try {
-        const confirmationToken = generateConfirmationToken(existingUser.id);
-        const frontendUrl = process.env.FRONTEND_URL || 'https://plausch.live';
-        const confirmUrl = `${frontendUrl}/confirm-email?token=${confirmationToken}`;
-        const emailSubject = 'Bestätige deine E-Mail Adresse für Plausch';
-        const emailContent = `Bitte folge diesem Link, um deine E-Mail Adresse zu bestätigen: <a href="${confirmUrl}">Klick</a>`;
+      const confirmationToken = generateConfirmationToken(existingUser.id);
+      const frontendUrl = process.env.FRONTEND_URL || 'https://plausch.live';
+      const confirmUrl = `${frontendUrl}/confirm-email?token=${confirmationToken}`;
+      const emailSubject = 'Bestätige deine E-Mail Adresse für Plausch';
+      const emailContent = `Bitte folge diesem Link, um deine E-Mail Adresse zu bestätigen: <a href="${confirmUrl}">Klick</a>`;
 
-        await sendEmail(existingUser.email, emailSubject, emailContent);
-        
-        const error = new Error('Ein Account mit dieser E-Mail existiert bereits, aber ist noch nicht bestätigt. Wir haben dir eine neue Bestätigungs-E-Mail gesendet.');
-        error.statusCode = 409;
-        error.userStatus = 'unconfirmed';
-        throw error;
-      } catch (err) {
-        console.error('Error resending confirmation email:', err.message);
-        throw new Error('Fehler beim Senden der Bestätigungs-E-Mail');
-      }
+      await sendEmail(existingUser.email, emailSubject, emailContent);
+      
+      const error = new Error('Ein Account mit dieser E-Mail existiert bereits, aber ist noch nicht bestätigt. Wir haben dir eine neue Bestätigungs-E-Mail gesendet.');
+      error.statusCode = 409;
+      error.userStatus = 'unconfirmed';
+      throw error;
     }
   }
 
