@@ -9,11 +9,14 @@ const UserSchema = new mongoose.Schema(
     password: { type: String, required: true },
     isConfirmed: { type: Boolean, required: true, default: false },
     isVisible: { type: Boolean, required: true, default: true },
+    hasSeenTutorial: { type: Boolean, default: false },
     bio: { type: String, default: '' },
-    chats: [{
+    chats: [
+      {
         chatId: { type: mongoose.Schema.Types.ObjectId, ref: 'Chat' },
         friendId: { type: String, ref: 'User' },
-    }],
+      },
+    ],
     friends: [{ type: String, ref: 'User' }],
     pendingRequests: [
       {
@@ -30,7 +33,6 @@ const UserSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
 
 UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();

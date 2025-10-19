@@ -6,12 +6,14 @@ const { setupChat } = require('./chatService');
 
 async function registerUser({ displayed_name, email, password }) {
   const existingUser = await User.findOne({ email });
-  
+
   if (existingUser) {
     // User already exists - check if confirmed
     if (existingUser.isConfirmed) {
       // User is confirmed - redirect to login
-      const error = new Error('Dieser Account ist bereits registriert und bestätigt. Bitte melde dich an.');
+      const error = new Error(
+        'Dieser Account ist bereits registriert und bestätigt. Bitte melde dich an.'
+      );
       error.statusCode = 409;
       error.userStatus = 'confirmed';
       throw error;
@@ -24,8 +26,10 @@ async function registerUser({ displayed_name, email, password }) {
       const emailContent = `Bitte folge diesem Link, um deine E-Mail Adresse zu bestätigen: <a href="${confirmUrl}">Klick</a>`;
 
       await sendEmail(existingUser.email, emailSubject, emailContent);
-      
-      const error = new Error('Ein Account mit dieser E-Mail existiert bereits, aber ist noch nicht bestätigt. Wir haben dir eine neue Bestätigungs-E-Mail gesendet.');
+
+      const error = new Error(
+        'Ein Account mit dieser E-Mail existiert bereits, aber ist noch nicht bestätigt. Wir haben dir eine neue Bestätigungs-E-Mail gesendet.'
+      );
       error.statusCode = 409;
       error.userStatus = 'unconfirmed';
       throw error;
