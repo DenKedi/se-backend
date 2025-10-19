@@ -12,18 +12,29 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Verify transporter connection
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('SMTP connection error:', error);
+  } else {
+    console.log('SMTP server is ready to send emails');
+  }
+});
+
 async function sendEmail(to, subject, html) {
   try {
     const info = await transporter.sendMail({
-      from: '"Plausch-noreply" <noreply@plausch.live>',
+      from: '"Plausch" <noreply@plausch.live>',
       to,
       subject,
       html,
     });
+    console.log('Email sent successfully:', info.messageId);
     return info;
   } catch (error) {
-    console.error('Error sending email:', error);
-    throw new Error('Error sending email');
+    console.error('Error sending email:', error.message);
+    console.error('Full error:', error);
+    throw new Error('Error sending email: ' + error.message);
   }
 }
 
