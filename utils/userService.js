@@ -22,7 +22,8 @@ async function registerUser({ displayed_name, email, password }) {
 
   try {
     const confirmationToken = generateConfirmationToken(newUser.id);
-    const confirmUrl = `https://plausch.live/confirm-email?token=${confirmationToken}`;
+    const frontendUrl = process.env.FRONTEND_URL || 'https://plausch.live';
+    const confirmUrl = `${frontendUrl}/confirm-email?token=${confirmationToken}`;
     const emailSubject = 'Bestätige deine E-Mail Adresse für Plausch';
     const emailContent = `Bitte folge diesem Link, um deine E-Mail Adresse zu bestätigen: <a href="${confirmUrl}">Klick</a>`;
 
@@ -75,7 +76,7 @@ async function findUserByIndex(user_id) {
 async function handleFriendRequest(sender, receiver) {
   try {
     // Extra Case
-    if(!receiver.isVisible) {
+    if (!receiver.isVisible) {
       return {
         msg: 'Dieser Benutzer möchte keine Freundschaftsanfragen erhalten',
         status: 400,
@@ -87,22 +88,25 @@ async function handleFriendRequest(sender, receiver) {
         msg: 'Du kannst dir nicht selbst eine Freundschaftsanfrage senden',
         status: 400,
       };
-    } 
+    }
 
     // Case 2: Sender has a pending request from the receiver
     if (sender.pendingRequests) {
-      for (let request of sender.pendingRequests) { 
-        if (request.from && request.from.toString() === receiver._id.toString()) {
+      for (let request of sender.pendingRequests) {
+        if (
+          request.from &&
+          request.from.toString() === receiver._id.toString()
+        ) {
           await acceptFriendRequest(sender, receiver);
           return { msg: 'Freundschaftsanfrage angenommen', status: 200 };
         }
       }
     }
-   
+
     // Case 3: Sender and receiver are already friends
     if (sender.friends && sender.friends.includes(receiver._id.toString())) {
       return { msg: 'Ihr seid bereits Freunde', status: 200 };
-    } 
+    }
 
     // Case 4: Sender has already sent a request to the receiver
     const existingRequest = receiver.pendingRequests.find(
@@ -116,7 +120,7 @@ async function handleFriendRequest(sender, receiver) {
       } else if (existingRequest.status === 'pending') {
         return { msg: 'Freundschaftsanfrage bereits gesendet', status: 200 };
       }
-    } 
+    }
 
     // Case 5: Sender has not sent a request to the receiver
     receiver.pendingRequests.push({ from: sender._id });

@@ -17,6 +17,7 @@ const corsOptions = {
     origin: (origin, callback) => {
         const allowedOrigins = [
             /^https:\/\/([a-z0-9-]+\.)*plausch\.live$/, 
+            /^https:\/\/([a-z0-9-]+\.)*bleck\.it$/,
             /^http:\/\/localhost(:\d+)?$/             
         ];
 
