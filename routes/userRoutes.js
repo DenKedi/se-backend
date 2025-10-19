@@ -76,6 +76,13 @@ router.post("/register", async (req, res, next) => {
         await registerUser(req.body);
         res.status(201).json({ msg: "Registrierung erfolgreich. Bitte überprüfe deine E-Mails." });
     } catch (err) {
+        // Handle special registration errors with status codes
+        if (err.statusCode === 409) {
+            return res.status(409).json({ 
+                msg: err.message,
+                userStatus: err.userStatus // 'confirmed' or 'unconfirmed'
+            });
+        }
         next(err);
     }
 });
