@@ -4,7 +4,7 @@ const User = require('../models/User');
 async function setupChat(sender, receiver) {
   try {
     const chat = new Chat({
-      participants: [sender._id, receiver._id],
+      participiants: [sender._id, receiver._id], // Note: typo in schema
     });
     await chat.save();
     sender.chats.push({ chatId: chat._id, friendId: receiver._id });
