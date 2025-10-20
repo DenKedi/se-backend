@@ -247,6 +247,20 @@ router.put('/accept-friend-request', auth, async (req, res, next) => {
   }
 
   const response = await acceptFriendRequest(sender, receiver);
+
+  // Emit socket event to sender (original requester)
+  const io = req.app.get('io');
+  if (io && response.status === 200) {
+    io.emit('friendRequestAccepted', {
+      receiverId: sender._id.toString(), // Person who sent original request
+      accepter: {
+        _id: receiver._id,
+        user_id: receiver.user_id,
+        displayed_name: receiver.displayed_name,
+      },
+    });
+  }
+
   return res.status(response.status).json({ msg: response.msg });
 });
 
