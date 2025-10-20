@@ -49,7 +49,14 @@ router.get('/find', auth, async (req, res, next) => {
 router.get('/me', auth, async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id).select('-password');
-    res.json(user);
+    
+    // Include info about whether user has encryption keys
+    const response = {
+      ...user.toObject(),
+      hasPublicKey: !!user.publicKey
+    };
+    
+    res.json(response);
   } catch (err) {
     next(err);
   }
@@ -300,17 +307,21 @@ router.post('/keys/upload', auth, async (req, res, next) => {
       return res.status(404).json({ msg: 'Benutzer nicht gefunden' });
     }
 
+    // Update public key
     user.publicKey = publicKey;
     user.keyVersion += 1;
     user.lastKeyUpdate = new Date();
     await user.save();
 
+    console.log(`✅ Public key uploaded for user ${user._id} (v${user.keyVersion})`);
+
     res.json({
       msg: 'Public Key erfolgreich hochgeladen',
       keyVersion: user.keyVersion,
+      hasPublicKey: true
     });
   } catch (error) {
-    console.error('Error uploading public key:', error);
+    console.error('❌ Error uploading public key:', error);
     next(error);
   }
 });
@@ -339,17 +350,30 @@ router.get('/keys/:chatId', auth, async (req, res, next) => {
       _id: { $in: chat.participiants },
     }).select('_id user_id displayed_name publicKey keyVersion');
 
-    const publicKeys = participants.map((p) => ({
-      userId: p._id,
-      user_id: p.user_id,
-      displayed_name: p.displayed_name,
-      publicKey: p.publicKey,
-      keyVersion: p.keyVersion,
-    }));
+    console.log(`🔍 Fetching encryption keys for chat ${req.params.chatId}`);
+    console.log(`   Participants: ${participants.length}`);
+    
+    let keysFound = 0;
+    const publicKeys = participants.map((p) => {
+      if (p.publicKey) {
+        keysFound++;
+      } else {
+        console.warn(`   ⚠️  User ${p._id} (${p.displayed_name}) has NO public key`);
+      }
+      return {
+        userId: p._id,
+        user_id: p.user_id,
+        displayed_name: p.displayed_name,
+        publicKey: p.publicKey,
+        keyVersion: p.keyVersion,
+      };
+    });
+
+    console.log(`✅ Retrieved ${keysFound}/${participants.length} public keys`);
 
     res.json({ publicKeys });
   } catch (error) {
-    console.error('Error fetching public keys:', error);
+    console.error('❌ Error fetching public keys:', error);
     next(error);
   }
 });

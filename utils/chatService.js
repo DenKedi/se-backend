@@ -59,18 +59,25 @@ async function pushMessageToChat(chatId, userId, messageData) {
       message.iv = messageData.iv;
       message.encryptedKeys = messageData.encryptedKeys;
       message.text = null; // No plain text for encrypted messages
+      
+      console.log(`🔐 Saving ENCRYPTED message to chat ${chatId}`);
+      console.log(`   Encrypted keys count: ${messageData.encryptedKeys?.length || 0}`);
     } else {
       // Legacy plain text message
       message.isEncrypted = false;
       message.text = typeof messageData === 'string' ? messageData : messageData.text;
+      
+      console.log(`📝 Saving PLAIN TEXT message to chat ${chatId}`);
     }
 
     chat.messages.push(message);
     await chat.save();
 
+    console.log(`✅ Message successfully saved to database. isEncrypted: ${message.isEncrypted}`);
+
     return chat;
   } catch (err) {
-    console.error('Error in pushMessageToChat:', err.message);
+    console.error('❌ Error in pushMessageToChat:', err.message);
     throw err;
   }
 }

@@ -30,11 +30,20 @@ module.exports = io => {
           ? { isEncrypted: true, encryptedContent, iv, encryptedKeys }
           : { text };
 
+        console.log(`📨 New message from ${socket.user._id} to chat ${chatId}`);
+        console.log(`   Encrypted: ${isEncrypted || false}`);
+        if (isEncrypted) {
+          console.log(`   Recipients with encrypted keys: ${encryptedKeys?.length || 0}`);
+        }
+
         const chatData = await pushMessageToChat(chatId, socket.user._id, messageData);
 
         const newMessage = chatData.messages[chatData.messages.length - 1];
+        console.log(`✅ Message saved. isEncrypted in DB: ${newMessage.isEncrypted}`);
+        
         io.to(chatId).emit('newMessage', { message: newMessage, chatId });
       } catch (err) {
+        console.error('❌ Error in sendMessage:', err);
         errorHandler(err, { socket });
       }
     });
