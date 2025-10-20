@@ -212,7 +212,7 @@ router.put('/friend-request', auth, async (req, res, next) => {
   }
 
   const response = await handleFriendRequest(sender, receiver);
-  
+
   // Emit socket event to receiver
   const io = req.app.get('io');
   if (io) {
@@ -221,11 +221,11 @@ router.put('/friend-request', auth, async (req, res, next) => {
       sender: {
         _id: sender._id,
         user_id: sender.user_id,
-        displayed_name: sender.displayed_name
-      }
+        displayed_name: sender.displayed_name,
+      },
     });
   }
-  
+
   return res.status(response.status).json({ msg: response.msg });
 });
 
@@ -282,4 +282,77 @@ router.put('/change-visibility', auth, async (req, res, next) => {
   return res.status(200).json({ msg: 'Sichtbarkeit geändert' });
 });
 
+// ============================================
+// ENCRYPTION KEY MANAGEMENT ROUTES
+// ============================================
+
+// POST /api/user/keys/upload - Upload user's public key
+router.post('/keys/upload', auth, async (req, res, next) => {
+  try {
+    const { publicKey } = req.body;
+
+    if (!publicKey) {
+      return res.status(400).json({ msg: 'Public key erforderlich' });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ msg: 'Benutzer nicht gefunden' });
+    }
+
+    user.publicKey = publicKey;
+    user.keyVersion += 1;
+    user.lastKeyUpdate = new Date();
+    await user.save();
+
+    res.json({
+      msg: 'Public Key erfolgreich hochgeladen',
+      keyVersion: user.keyVersion,
+    });
+  } catch (error) {
+    console.error('Error uploading public key:', error);
+    next(error);
+  }
+});
+
+// GET /api/user/keys/:chatId - Get public keys for all chat participants
+router.get('/keys/:chatId', auth, async (req, res, next) => {
+  try {
+    const Chat = require('../models/Chat');
+    const chat = await Chat.findById(req.params.chatId);
+
+    if (!chat) {
+      return res.status(404).json({ msg: 'Chat nicht gefunden' });
+    }
+
+    // Verify user is participant in this chat
+    const isParticipant = chat.participiants.some(
+      (p) => p.toString() === req.user._id.toString()
+    );
+
+    if (!isParticipant) {
+      return res.status(403).json({ msg: 'Zugriff verweigert' });
+    }
+
+    // Get public keys for all participants
+    const participants = await User.find({
+      _id: { $in: chat.participiants },
+    }).select('_id user_id displayed_name publicKey keyVersion');
+
+    const publicKeys = participants.map((p) => ({
+      userId: p._id,
+      user_id: p.user_id,
+      displayed_name: p.displayed_name,
+      publicKey: p.publicKey,
+      keyVersion: p.keyVersion,
+    }));
+
+    res.json({ publicKeys });
+  } catch (error) {
+    console.error('Error fetching public keys:', error);
+    next(error);
+  }
+});
+
 module.exports = router;
+

@@ -38,14 +38,33 @@ async function getChat(chatId, userId) {
     }
   }
 
-async function pushMessageToChat(chatId, userId, text) {
+async function pushMessageToChat(chatId, userId, messageData) {
   try {
     const chat = await Chat.findById(chatId);
     if (!chat) {
       throw new Error('Chat not found');
     }
 
-    const message = { from: userId, text };
+    // Support both encrypted and plain text messages
+    const message = {
+      from: userId,
+      timestamp: new Date(),
+      isDeleted: false,
+    };
+
+    // If messageData is an object with encryption fields
+    if (typeof messageData === 'object' && messageData.isEncrypted) {
+      message.isEncrypted = true;
+      message.encryptedContent = messageData.encryptedContent;
+      message.iv = messageData.iv;
+      message.encryptedKeys = messageData.encryptedKeys;
+      message.text = null; // No plain text for encrypted messages
+    } else {
+      // Legacy plain text message
+      message.isEncrypted = false;
+      message.text = typeof messageData === 'string' ? messageData : messageData.text;
+    }
+
     chat.messages.push(message);
     await chat.save();
 

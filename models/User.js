@@ -28,6 +28,19 @@ const UserSchema = new mongoose.Schema(
         },
       },
     ],
+    // Encryption fields
+    publicKey: {
+      type: String,
+      default: null,
+    },
+    keyVersion: {
+      type: Number,
+      default: 1,
+    },
+    lastKeyUpdate: {
+      type: Date,
+      default: Date.now,
+    },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
   },
